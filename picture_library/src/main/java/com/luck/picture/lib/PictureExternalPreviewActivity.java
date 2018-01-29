@@ -1,15 +1,19 @@
 package com.luck.picture.lib;
 
 import android.Manifest;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +50,7 @@ import com.luck.picture.lib.widget.longimage.SubsamplingScaleImageView;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -397,6 +402,22 @@ public class PictureExternalPreviewActivity extends PictureBaseActivity implemen
                 case 200:
                     String path = (String) msg.obj;
                     showToast(getString(R.string.picture_save_success) + "\n" + path);
+
+                    /**
+                     * 更新系统图库
+                     */
+                    String name="";
+                    if(!TextUtils.isEmpty(path)){
+                        name=path.substring(path.lastIndexOf("/"));
+                    }
+                    try {
+                        MediaStore.Images.Media.insertImage(getContentResolver(),
+                                path, name, null);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse("file://" + path)));
+
                     dismissDialog();
                     break;
             }
